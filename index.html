@@ -1,42 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>NFT Floor Price Tracker</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<style>
-body { font-family: system-ui; padding:16px; }
-table { width:100%; border-collapse:collapse; font-size:12px; }
-th,td { padding:8px; border-bottom:1px solid #ddd; }
-th { text-align:left; color:#666; font-size:11px; }
-.positive { color:green; }
-.negative { color:red; }
-#status { font-size:11px; margin:8px 0; color:#666; }
-#error { color:red; font-size:11px; white-space:pre-wrap; }
-</style>
-</head>
-
-<body>
-
-<h2>NFT Floor Price Tracker</h2>
-<div id="status">Initializing…</div>
-<div id="error"></div>
-
-<table>
-<thead>
-<tr>
-<th>Collection</th>
-<th>ETH</th>
-<th>USD</th>
-<th>24h</th>
-</tr>
-</thead>
-<tbody id="table-body">
-<tr><td colspan="4">Waiting for data…</td></tr>
-</tbody>
-</table>
-
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -53,31 +14,62 @@ const collections = {
 
 const tbody = document.getElementById("table-body");
 const status = document.getElementById("status");
-const errorBox = document.getElementById("error");
 
-status.textContent = "Fetching data…";
+status.textContent = "Starting fetch diagnostics…";
 tbody.innerHTML = "";
 
-Promise.allSettled(
-  Object.entries(collections).map(([name, slug]) =>
-    fetch(https://api.coingecko.com/api/v3/nfts/${slug}?x_cg_demo_api_key=${API_KEY})
-      .then(r => r.json())
-      .then(d => ({
-        name,
-        eth: d.floor_price?.native_currency ?? "—",
-        usd: d.floor_price?.usd ? $${Math.round(d.floor_price.usd).toLocaleString()} : "—",
-        change: d.floor_price_24h_percentage_change?.native_currency
-      }))
-  )
-).then(results => {
+function row(msg) {
+  const tr = document.createElement("tr");
+  tr.innerHTML = <td colspan="4">${msg}</td>;
+  tbody.appendChild(tr);
+}
+
+async function fetchNFT(name, slug) {
+  row(⏳ Fetching ${name}…);
+
+  try {
+    const res = await fetch(
+      https://api.coingecko.com/api/v3/nfts/${slug}?x_cg_demo_api_key=${API_KEY},
+      { headers: { accept: "application/json" } }
+    );
+
+    row(📡 ${name} HTTP ${res.status});
+
+    if (!res.ok) throw new Error(HTTP ${res.status});
+
+    const d = await res.json();
+
+    return {
+      name,
+      eth: d.floor_price?.native_currency ?? "—",
+      usd: d.floor_price?.usd ? $${Math.round(d.floor_price.usd).toLocaleString()} : "—",
+      change: d.floor_price_24h_percentage_change?.native_currency
+    };
+
+  } catch (e) {
+    row(❌ ${name} ERROR: ${e.message});
+    return null;
+  }
+}
+
+(async () => {
+  const results = [];
+
+  for (const [name, slug] of Object.entries(collections)) {
+    const r = await fetchNFT(name, slug);
+    if (r) results.push(r);
+  }
+
   tbody.innerHTML = "";
 
-  results.forEach(r => {
-    if (r.status !== "fulfilled") return;
+  if (results.length === 0) {
+    row("🚨 All requests failed or stalled.");
+    status.textContent = "FAILED";
+    return;
+  }
 
-    const d = r.value;
+  results.forEach(d => {
     const cls = d.change > 0 ? "positive" : d.change < 0 ? "negative" : "";
-
     const tr = document.createElement("tr");
     tr.innerHTML = 
       <td>${d.name}</td>
@@ -90,13 +82,7 @@ Promise.allSettled(
     tbody.appendChild(tr);
   });
 
-  status.textContent = "Updated: " + new Date().toLocaleTimeString();
-}).catch(err => {
-  errorBox.textContent = "FATAL ERROR:\n" + err;
-});
-
+  status.textContent = "Completed at " + new Date().toLocaleTimeString();
+})();
 });
 </script>
-
-</body>
-</html>
