@@ -8,7 +8,7 @@ const collections = [
 ];
 
 async function fetchNFTData() {
-    const apiKey = 'YOUR_API_KEY'; // Replace with your actual CoinGecko Pro API key
+    const apiKey = 'CG-wsr54JajbpXGMajeRzYgZVQW'; // Replace with your actual CoinGecko Pro API key
     const results = [];
     const container = document.getElementById('data');
     container.innerHTML = '<p>Loading...</p>';
