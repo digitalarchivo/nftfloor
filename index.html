@@ -1,44 +1,16 @@
-<script>
-    async function fetchNFTData() {
-        const collections = [
-            { name: 'PunkStrategy', coingeckoId: 'cryptopunks' },
-            { name: 'ApeStrategy', coingeckoId: 'bored-ape-yacht-club' },
-            { name: 'PudgyStrategy', coingeckoId: 'pudgy-penguins' },
-            { name: 'VibeStrategy', coingeckoId: 'good-vibes-club' },
-            { name: 'ChimpStrategy', coingeckoId: 'chimpers-nft' },
-            { name: 'MeebitStrategy', coingeckoId: 'meebits' },
-            { name: 'AzukiStrategy', coingeckoId: 'azuki' },
-            { name: 'MoonbirdsStrategy', coingeckoId: 'moonbirds' }
-        ];
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NFT Floor Price Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>NFT Floor Price Dashboard</h1>
+    <button onclick="fetchNFTData()">Fetch Floor Prices</button>
+    <div id="data"></div>
+    <script src="script.js"></script>
+</body>
+</html>
 
-        const apiKey = 'YOUR_API_KEY'; // Replace with your actual key
-        const results = [];
-
-        for (const collection of collections) {
-            const url = `https://api.coingecko.com/api/v3/nfts/${collection.coingeckoId}?x_cg_demo_api_key=${apiKey}`;
-            try {
-                const response = await fetch(url);
-                const data = await response.json();
-                results.push({
-                    name: collection.name,
-                    floorPrice: data.floor_price.native_currency || 'N/A'
-                });
-            } catch (error) {
-                results.push({
-                    name: collection.name,
-                    floorPrice: 'Error'
-                });
-            }
-        }
-
-        displayData(results);
-    }
-
-    function displayData(results) {
-        const container = document.getElementById('data');
-        container.innerHTML = '<h2>NFT Floor Prices</h2><table border="1">' +
-            '<tr><th>Strategy</th><th>Floor Price</th></tr>' +
-            results.map(item => `<tr><td>${item.name}</td><td>${item.floorPrice}</td></tr>`).join('') +
-            '</table>';
-    }
-</script>
