@@ -1,41 +1,39 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>CoinGecko Hard Test</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NFT Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        #data { margin-top: 20px; }
+    </style>
 </head>
 <body>
+    <h1>NFT Dashboard</h1>
+    <button onclick="fetchNFTData()">Fetch NFT Data</button>
+    <div id="data"></div>
 
-<h2>CoinGecko Hard Test</h2>
-<div id="status">Page loaded</div>
-<pre id="out">Waiting…</pre>
+    <script>
+        async function fetchNFTData() {
+            const apiKey = 'CG-wsr54JajbpXGMajeRzYgZVQW'; // Replace with your actual key
+            const url = `https://api.coingecko.com/api/v3/nfts/list?x_cg_demo_api_key=${apiKey}`;
 
-<script>
-window.onload = function () {
-  const out = document.getElementById("out");
-  const status = document.getElementById("status");
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                displayData(data);
+            } catch (error) {
+                document.getElementById('data').innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        }
 
-  status.textContent = "Running fetch…";
-
-  fetch(
-    "https://api.coingecko.com/api/v3/nfts/bored-ape-yacht-club?x_cg_demo_api_key=CG-wsr54JajbpXGMajeRzYgZVQW"
-  )
-  .then(r => {
-    status.textContent = "HTTP " + r.status;
-    return r.json();
-  })
-  .then(d => {
-    out.textContent =
-      "BAYC FLOOR\n\n" +
-      d.floor_price.native_currency + " ETH\n" +
-      "$" + Math.round(d.floor_price.usd).toLocaleString();
-  })
-  .catch(e => {
-    out.textContent = "ERROR:\n" + e.message;
-  });
-};
-</script>
-
+        function displayData(data) {
+            const container = document.getElementById('data');
+            container.innerHTML = '<h2>NFT Collections</h2><ul>' +
+                data.map(item => `<li>${item.name} (${item.id})</li>`).join('') +
+                '</ul>';
+        }
+    </script>
 </body>
 </html>
