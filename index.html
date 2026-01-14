@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>NFT Floor Price Tracker</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body { font-family: system-ui; padding:16px; }
+table { width:100%; border-collapse:collapse; font-size:12px; }
+th,td { padding:8px; border-bottom:1px solid #ddd; }
+th { text-align:left; color:#666; font-size:11px; }
+.positive { color:green; }
+.negative { color:red; }
+#status { font-size:11px; margin:8px 0; color:#666; }
+#error { color:red; font-size:11px; white-space:pre-wrap; }
+</style>
+</head>
+
+<body>
+
+<h2>NFT Floor Price Tracker</h2>
+<div id="status">Initializing…</div>
+<div id="error"></div>
+
+<table>
+<thead>
+<tr>
+<th>Collection</th>
+<th>ETH</th>
+<th>USD</th>
+<th>24h</th>
+</tr>
+</thead>
+<tbody id="table-body">
+<tr><td colspan="4">Waiting for data…</td></tr>
+</tbody>
+</table>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+const API_KEY = "CG-wsr54JajbpXGMajeRzYgZVQW";
+
+const collections = {
+  "BAYC": "bored-ape-yacht-club",
+  "CryptoPunks": "cryptopunks",
+  "Meebits": "meebits",
+  "Moonbirds": "moonbirds",
+  "Pudgy Penguins": "pudgy-penguins",
+  "Good Vibes Club": "good-vibes-club"
+};
+
+const tbody = document.getElementById("table-body");
+const status = document.getElementById("status");
+const errorBox = document.getElementById("error");
+
+status.textContent = "Fetching data…";
+tbody.innerHTML = "";
+
+Promise.allSettled(
+  Object.entries(collections).map(([name, slug]) =>
+    fetch(https://api.coingecko.com/api/v3/nfts/${slug}?x_cg_demo_api_key=${API_KEY})
+      .then(r => r.json())
+      .then(d => ({
+        name,
+        eth: d.floor_price?.native_currency ?? "—",
+        usd: d.floor_price?.usd ? $${Math.round(d.floor_price.usd).toLocaleString()} : "—",
+        change: d.floor_price_24h_percentage_change?.native_currency
+      }))
+  )
+).then(results => {
+  tbody.innerHTML = "";
+
+  results.forEach(r => {
+    if (r.status !== "fulfilled") return;
+
+    const d = r.value;
+    const cls = d.change > 0 ? "positive" : d.change < 0 ? "negative" : "";
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = 
+      <td>${d.name}</td>
+      <td>${d.eth}</td>
+      <td>${d.usd}</td>
+      <td class="${cls}">
+        ${d.change != null ? d.change.toFixed(2) + "%" : "—"}
+      </td>
+    ;
+    tbody.appendChild(tr);
+  });
+
+  status.textContent = "Updated: " + new Date().toLocaleTimeString();
+}).catch(err => {
+  errorBox.textContent = "FATAL ERROR:\n" + err;
+});
+
+});
+</script>
+
+</body>
+</html>
