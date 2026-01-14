@@ -1,88 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>CoinGecko Hard Test</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+
+<h2>CoinGecko Hard Test</h2>
+<div id="status">Page loaded</div>
+<pre id="out">Waiting…</pre>
+
 <script>
-document.addEventListener("DOMContentLoaded", () => {
+window.onload = function () {
+  const out = document.getElementById("out");
+  const status = document.getElementById("status");
 
-const API_KEY = "CG-wsr54JajbpXGMajeRzYgZVQW";
+  status.textContent = "Running fetch…";
 
-const collections = {
-  "BAYC": "bored-ape-yacht-club",
-  "CryptoPunks": "cryptopunks",
-  "Meebits": "meebits",
-  "Moonbirds": "moonbirds",
-  "Pudgy Penguins": "pudgy-penguins",
-  "Good Vibes Club": "good-vibes-club"
-};
-
-const tbody = document.getElementById("table-body");
-const status = document.getElementById("status");
-
-status.textContent = "Starting fetch diagnostics…";
-tbody.innerHTML = "";
-
-function row(msg) {
-  const tr = document.createElement("tr");
-  tr.innerHTML = <td colspan="4">${msg}</td>;
-  tbody.appendChild(tr);
-}
-
-async function fetchNFT(name, slug) {
-  row(⏳ Fetching ${name}…);
-
-  try {
-    const res = await fetch(
-      https://api.coingecko.com/api/v3/nfts/${slug}?x_cg_demo_api_key=${API_KEY},
-      { headers: { accept: "application/json" } }
-    );
-
-    row(📡 ${name} HTTP ${res.status});
-
-    if (!res.ok) throw new Error(HTTP ${res.status});
-
-    const d = await res.json();
-
-    return {
-      name,
-      eth: d.floor_price?.native_currency ?? "—",
-      usd: d.floor_price?.usd ? $${Math.round(d.floor_price.usd).toLocaleString()} : "—",
-      change: d.floor_price_24h_percentage_change?.native_currency
-    };
-
-  } catch (e) {
-    row(❌ ${name} ERROR: ${e.message});
-    return null;
-  }
-}
-
-(async () => {
-  const results = [];
-
-  for (const [name, slug] of Object.entries(collections)) {
-    const r = await fetchNFT(name, slug);
-    if (r) results.push(r);
-  }
-
-  tbody.innerHTML = "";
-
-  if (results.length === 0) {
-    row("🚨 All requests failed or stalled.");
-    status.textContent = "FAILED";
-    return;
-  }
-
-  results.forEach(d => {
-    const cls = d.change > 0 ? "positive" : d.change < 0 ? "negative" : "";
-    const tr = document.createElement("tr");
-    tr.innerHTML = 
-      <td>${d.name}</td>
-      <td>${d.eth}</td>
-      <td>${d.usd}</td>
-      <td class="${cls}">
-        ${d.change != null ? d.change.toFixed(2) + "%" : "—"}
-      </td>
-    ;
-    tbody.appendChild(tr);
+  fetch(
+    "https://api.coingecko.com/api/v3/nfts/bored-ape-yacht-club?x_cg_demo_api_key=CG-wsr54JajbpXGMajeRzYgZVQW"
+  )
+  .then(r => {
+    status.textContent = "HTTP " + r.status;
+    return r.json();
+  })
+  .then(d => {
+    out.textContent =
+      "BAYC FLOOR\n\n" +
+      d.floor_price.native_currency + " ETH\n" +
+      "$" + Math.round(d.floor_price.usd).toLocaleString();
+  })
+  .catch(e => {
+    out.textContent = "ERROR:\n" + e.message;
   });
-
-  status.textContent = "Completed at " + new Date().toLocaleTimeString();
-})();
-});
+};
 </script>
+
+</body>
+</html>
